@@ -89,6 +89,16 @@ class AdkToA2aExecutor(AgentExecutor):
             if user_id == "default_user" and context.call_context.state:
                  user_id = context.call_context.state.get("user_id", "default_user")
 
+            # Additional fallback: Check common headers in state['headers'] if available
+            if user_id == "default_user" and context.call_context.state and "headers" in context.call_context.state:
+                headers = context.call_context.state["headers"]
+                # Case-insensitive header check not strictly needed as headers are often lowercased, but good to have list
+                # Common headers for user identification
+                for header_key in ["user-id", "x-user-id", "x-goog-authenticated-user-id"]:
+                    if header_key in headers:
+                        user_id = headers[header_key]
+                        break
+
         session_id = context.context_id or "default_session"
 
         # 2. Convert Input
