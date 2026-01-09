@@ -34,6 +34,7 @@ from a2a.server.events.event_queue import EventQueue
 from a2a.server.agent_execution.context import RequestContext
 from a2a.types import Message, TextPart
 
+from common.utils.context_utils import extract_user_id
 from app.agent import app as adk_app
 
 logging.basicConfig(level=logging.INFO)
@@ -77,17 +78,7 @@ class AdkToA2aExecutor(AgentExecutor):
             event_queue (EventQueue): The queue to send resulting events/messages to.
         """
         # 1. Extract User/Session
-        user_id = "default_user"
-        # Fix: ServerCallContext does not have raw_headers. Check user object or state.
-        if context.call_context:
-            if hasattr(context.call_context, "user") and context.call_context.user:
-                 # If it's an authenticated user object, it might have an id
-                 if hasattr(context.call_context.user, "id") and context.call_context.user.id:
-                     user_id = context.call_context.user.id
-            
-            # Fallback: check state for potential headers or info
-            if user_id == "default_user" and context.call_context.state:
-                 user_id = context.call_context.state.get("user_id", "default_user")
+        user_id = extract_user_id(context)
 
         session_id = context.context_id or "default_session"
 
