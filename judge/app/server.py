@@ -53,11 +53,29 @@ runner = Runner(
 
 # --- Custom Executor ---
 class AdkToA2aExecutor(AgentExecutor):
-    def __init__(self, runner, app_name):
+    """Executes ADK agents within an A2A server context.
+
+    This executor bridges the gap between the A2A protocol and the ADK Runner.
+    It translates incoming A2A requests into ADK session calls and streams
+    the resulting events back as A2A messages.
+    """
+    def __init__(self, runner: Runner, app_name: str):
+        """Initialize the executor.
+
+        Args:
+            runner (Runner): The ADK Runner instance to execute the agent.
+            app_name (str): The name of the ADK application.
+        """
         self.runner = runner
         self.app_name = app_name
 
     async def execute(self, context: RequestContext, event_queue: EventQueue) -> None:
+        """Executes the agent task.
+
+        Args:
+            context (RequestContext): The context of the A2A request, containing the message and metadata.
+            event_queue (EventQueue): The queue to send resulting events/messages to.
+        """
         # 1. Extract User/Session
         user_id = "default_user"
         # Fix: ServerCallContext does not have raw_headers. Check user object or state.
@@ -131,6 +149,14 @@ class AdkToA2aExecutor(AgentExecutor):
                     await event_queue.enqueue_event(a2a_msg)
 
     async def cancel(self, context: RequestContext, event_queue: EventQueue) -> None:
+        """Cancels the execution of a task.
+
+        Currently a no-op.
+
+        Args:
+            context (RequestContext): The context of the request to cancel.
+            event_queue (EventQueue): The event queue.
+        """
         pass
 
 # --- A2A Setup ---

@@ -25,7 +25,14 @@ from pydantic import (
 
 
 class Request(BaseModel):
-    """Represents the input for a chat request with optional configuration."""
+    """Represents the input for a chat request with optional configuration.
+
+    Attributes:
+        message (Content): The content of the user's message.
+        events (list[Event]): A list of events to process.
+        user_id (str): The unique identifier for the user. Defaults to a new UUID.
+        session_id (str): The unique identifier for the session. Defaults to a new UUID.
+    """
 
     message: Content
     events: list[Event]
@@ -36,7 +43,16 @@ class Request(BaseModel):
 
 
 class Feedback(BaseModel):
-    """Represents feedback for a conversation."""
+    """Represents feedback for a conversation.
+
+    Attributes:
+        score (int | float): The score given for the conversation.
+        text (str | None): Optional text feedback. Defaults to empty string.
+        invocation_id (str): The ID of the invocation this feedback is for.
+        log_type (Literal["feedback"]): The type of log entry. Defaults to "feedback".
+        service_name (Literal["course-creation-agent"]): The name of the service. Defaults to "course-creation-agent".
+        user_id (str): The ID of the user providing feedback. Defaults to empty string.
+    """
 
     score: int | float
     text: str | None = ""
