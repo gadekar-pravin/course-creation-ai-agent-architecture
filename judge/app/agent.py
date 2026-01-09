@@ -21,8 +21,12 @@ MODEL = "gemini-2.5-pro"
 
 # --- Data Models ---
 class JudgeFeedback(BaseModel):
+    """Structured feedback from the Judge agent.
 
-    """Structured feedback from the Judge agent."""
+    Attributes:
+        status (Literal["pass", "fail"]): Whether the research is sufficient ('pass') or needs more work ('fail').
+        feedback (str): Detailed feedback on what is missing or needs clarification if status is 'fail'. If 'pass', a brief confirmation.
+    """
     status: Literal["pass", "fail"] = Field(
         description="Whether the research is sufficient ('pass') or needs more work ('fail')."
     )

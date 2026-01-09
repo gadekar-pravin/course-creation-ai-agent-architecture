@@ -31,6 +31,14 @@ from pydantic import BaseModel
 from app.agent import app as adk_app
 
 class Feedback(BaseModel):
+    """Represents feedback received from the frontend.
+
+    Attributes:
+        score (float): The numeric score (e.g., 1-5).
+        text (str | None): Optional text comment.
+        run_id (str | None): The ID of the run/session.
+        user_id (str | None): The user ID.
+    """
     score: float
     text: str | None = None
     run_id: str | None = None
@@ -60,13 +68,31 @@ app.add_middleware(
 )
 
 class SimpleChatRequest(BaseModel):
+    """Represents a simple chat request from the client.
+
+    Attributes:
+        message (str): The user's message.
+        user_id (str): The user identifier. Defaults to "test_user".
+        session_id (str): The session identifier. Defaults to "test_session".
+    """
     message: str
     user_id: str = "test_user"
     session_id: str = "test_session"
 
 @app.post("/api/chat_stream")
 async def chat_stream(request: SimpleChatRequest):
-    """Streaming chat endpoint."""
+    """Streaming chat endpoint.
+
+    Handles a chat request, manages the session, and streams the agent's response
+    and progress updates back to the client.
+
+    Args:
+        request (SimpleChatRequest): The chat request object containing the message and user/session IDs.
+
+    Returns:
+        StreamingResponse: An async generator that yields JSON-formatted strings representing
+        progress updates or the final result.
+    """
     try:
         session = await runner.session_service.get_session(
             session_id=request.session_id, app_name=adk_app.name, user_id=request.user_id
@@ -110,6 +136,16 @@ async def chat_stream(request: SimpleChatRequest):
 
 @app.post("/feedback")
 def collect_feedback(feedback: Feedback) -> dict[str, str]:
+    """Endpoint to collect user feedback.
+
+    Logs the received feedback.
+
+    Args:
+        feedback (Feedback): The feedback object.
+
+    Returns:
+        dict[str, str]: A status dictionary {"status": "success"}.
+    """
     logger.info(f"Feedback received: {feedback.model_dump()}")
     return {"status": "success"}
 

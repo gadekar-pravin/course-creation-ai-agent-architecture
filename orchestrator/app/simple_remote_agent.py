@@ -12,7 +12,15 @@ logger = logging.getLogger(__name__)
 from pydantic import PrivateAttr
 
 class SimpleRemoteAgent(BaseAgent):
-    """A simple remote agent that communicates via HTTP POST requests."""
+    """A simple remote agent that communicates via HTTP POST requests.
+
+    This agent forwards user messages to a remote service via HTTP POST and yields
+    the response as an event.
+
+    Attributes:
+        base_url (str): The base URL of the remote agent.
+        _client (httpx.AsyncClient): The HTTP client for making requests.
+    """
     
     base_url: str
     _client: httpx.AsyncClient = PrivateAttr()
@@ -25,18 +33,42 @@ class SimpleRemoteAgent(BaseAgent):
         model: str = "", # Not used, but kept for compatibility
         **kwargs
     ):
+        """Initialize the SimpleRemoteAgent.
+
+        Args:
+            name (str): The name of the agent.
+            base_url (str): The base URL of the remote service.
+            description (str, optional): A description of the agent. Defaults to "".
+            model (str, optional): The model name (unused, kept for compatibility). Defaults to "".
+            **kwargs: Additional arguments passed to the BaseAgent constructor.
+        """
         super().__init__(name=name, description=description, base_url=base_url, **kwargs)
         self.base_url = base_url.rstrip("/")
         self._client = httpx.AsyncClient(timeout=60.0)
 
     @property
     def client(self):
+        """Returns the HTTP client instance.
+
+        Returns:
+            httpx.AsyncClient: The async HTTP client.
+        """
         return self._client
 
     async def _run_async_impl(
         self, ctx: InvocationContext
     ) -> AsyncGenerator[Event, None]:
-        """Sends the user message to the remote agent and yields the response."""
+        """Sends the user message to the remote agent and yields the response.
+
+        Extracts the last user message from the context events, sends it to the
+        remote agent's chat endpoint, and yields the response as an Event.
+
+        Args:
+            ctx (InvocationContext): The context of the current invocation.
+
+        Yields:
+            Event: The event containing the response from the remote agent or an error message.
+        """
         
         # Extract the last user message text
         user_message = ""
